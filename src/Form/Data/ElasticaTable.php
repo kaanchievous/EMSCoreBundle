@@ -15,7 +15,7 @@ class ElasticaTable extends TableAbstract
     private const QUERY = 'query';
     private const EMPTY_QUERY = 'empty_query';
     private const FRONTEND_OPTIONS = 'frontendOptions';
-    const DEFAULT_ORDER = 'default_order';
+    private const DEFAULT_ORDER = 'default_order';
     private ElasticaService $elasticaService;
     /** @var string[] */
     private array $aliases;
@@ -30,9 +30,9 @@ class ElasticaTable extends TableAbstract
      * @param string[] $aliases
      * @param string[] $contentTypeNames
      */
-    public function __construct(ElasticaService $elasticaService, string $ajaxUrl, array $aliases, array $contentTypeNames, string $emptyQuery, string $query)
+    public function __construct(ElasticaService $elasticaService, string $ajaxUrl, array $aliases, array $contentTypeNames, string $emptyQuery, string $query, int $defaultOrderIndex)
     {
-        parent::__construct($ajaxUrl, 0, 0);
+        parent::__construct($ajaxUrl, 0, 0, $defaultOrderIndex);
         $this->elasticaService = $elasticaService;
         $this->aliases = $aliases;
         $this->contentTypeNames = $contentTypeNames;
@@ -48,7 +48,7 @@ class ElasticaTable extends TableAbstract
     public static function fromConfig(ElasticaService $elasticaService, string $ajaxUrl, array $aliases, array $contentTypeNames, array $options): ElasticaTable
     {
         $options = self::resolveOptions($options);
-        $datatable = new self($elasticaService, $ajaxUrl, $aliases, $contentTypeNames, $options[self::EMPTY_QUERY], $options[self::QUERY]);
+        $datatable = new self($elasticaService, $ajaxUrl, $aliases, $contentTypeNames, $options[self::EMPTY_QUERY], $options[self::QUERY], $options[self::DEFAULT_ORDER]);
         foreach ($options[self::COLUMNS] as $column) {
             $datatable->addColumnDefinition(new TemplateTableColumn($column));
         }

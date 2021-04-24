@@ -33,12 +33,14 @@ abstract class TableAbstract implements TableInterface
     private ?string $ajaxUrl = null;
     /** @var array<mixed> */
     private array $extraFrontendOption = [];
+    private ?int $defaultOrderIndex;
 
-    public function __construct(?string $ajaxUrl, int $from, int $size)
+    public function __construct(?string $ajaxUrl, int $from, int $size, ?int $defaultOrderIndex = null)
     {
         $this->ajaxUrl = $ajaxUrl;
         $this->from = $from;
         $this->size = $size;
+        $this->defaultOrderIndex = $defaultOrderIndex;
     }
 
     public function isSortable(): bool
@@ -241,6 +243,12 @@ abstract class TableAbstract implements TableInterface
                 'serverSide' => true,
                 'ajax' => $this->ajaxUrl,
             ]);
+
+            if (null !== $this->defaultOrderIndex) {
+                $options = \array_merge($options, [
+                    'order' => [[$this->defaultOrderIndex, 'asc']],
+                ]);
+            }
         }
 
         $columnOptions = [];
