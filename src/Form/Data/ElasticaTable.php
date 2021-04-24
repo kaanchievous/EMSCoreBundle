@@ -16,6 +16,7 @@ class ElasticaTable extends TableAbstract
     private const EMPTY_QUERY = 'empty_query';
     private const FRONTEND_OPTIONS = 'frontendOptions';
     private const DEFAULT_ORDER = 'default_order';
+    private const DEFAULT_DIRECTION = 'default_direction';
     private ElasticaService $elasticaService;
     /** @var string[] */
     private array $aliases;
@@ -30,9 +31,9 @@ class ElasticaTable extends TableAbstract
      * @param string[] $aliases
      * @param string[] $contentTypeNames
      */
-    public function __construct(ElasticaService $elasticaService, string $ajaxUrl, array $aliases, array $contentTypeNames, string $emptyQuery, string $query, int $defaultOrderIndex)
+    public function __construct(ElasticaService $elasticaService, string $ajaxUrl, array $aliases, array $contentTypeNames, string $emptyQuery, string $query, int $defaultOrderIndex, string $defaultOrderDirection)
     {
-        parent::__construct($ajaxUrl, 0, 0, $defaultOrderIndex);
+        parent::__construct($ajaxUrl, 0, 0, [$defaultOrderIndex => $defaultOrderDirection]);
         $this->elasticaService = $elasticaService;
         $this->aliases = $aliases;
         $this->contentTypeNames = $contentTypeNames;
@@ -48,7 +49,7 @@ class ElasticaTable extends TableAbstract
     public static function fromConfig(ElasticaService $elasticaService, string $ajaxUrl, array $aliases, array $contentTypeNames, array $options): ElasticaTable
     {
         $options = self::resolveOptions($options);
-        $datatable = new self($elasticaService, $ajaxUrl, $aliases, $contentTypeNames, $options[self::EMPTY_QUERY], $options[self::QUERY], $options[self::DEFAULT_ORDER]);
+        $datatable = new self($elasticaService, $ajaxUrl, $aliases, $contentTypeNames, $options[self::EMPTY_QUERY], $options[self::QUERY], $options[self::DEFAULT_ORDER], $options[self::DEFAULT_DIRECTION]);
         foreach ($options[self::COLUMNS] as $column) {
             $datatable->addColumnDefinition(new TemplateTableColumn($column));
         }
@@ -128,7 +129,7 @@ class ElasticaTable extends TableAbstract
     /**
      * @param array<string, mixed> $options
      *
-     * @return array{columns: array, query: string, empty_query: string, frontendOptions: array, default_order: int}
+     * @return array{columns: array, query: string, empty_query: string, frontendOptions: array, default_order: int, default_direction: string}
      */
     private static function resolveOptions(array $options)
     {
@@ -144,11 +145,13 @@ class ElasticaTable extends TableAbstract
                 ],
                 self::FRONTEND_OPTIONS => [],
                 self::DEFAULT_ORDER => 0,
+                self::DEFAULT_DIRECTION => 'asc',
             ])
             ->setAllowedTypes(self::COLUMNS, ['array'])
             ->setAllowedTypes(self::QUERY, ['array', 'string'])
             ->setAllowedTypes(self::QUERY, ['array', 'string'])
             ->setAllowedTypes(self::DEFAULT_ORDER, ['int'])
+            ->setAllowedTypes(self::DEFAULT_DIRECTION, ['string'])
             ->setNormalizer(self::QUERY, function (Options $options, $value) {
                 if (\is_array($value)) {
                     $value = \json_encode($value);
@@ -170,7 +173,7 @@ class ElasticaTable extends TableAbstract
                 return $value;
             })
         ;
-        /** @var array{columns: array, query: string, empty_query: string, frontendOptions: array, default_order: int} $resolvedParameter */
+        /** @var array{columns: array, query: string, empty_query: string, frontendOptions: array, default_order: int, default_direction: string} $resolvedParameter */
         $resolvedParameter = $resolver->resolve($options);
 
         return $resolvedParameter;

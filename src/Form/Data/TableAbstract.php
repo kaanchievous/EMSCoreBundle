@@ -33,14 +33,18 @@ abstract class TableAbstract implements TableInterface
     private ?string $ajaxUrl = null;
     /** @var array<mixed> */
     private array $extraFrontendOption = [];
-    private ?int $defaultOrderIndex;
+    /** @var string[] */
+    private array $defaultOrder;
 
-    public function __construct(?string $ajaxUrl, int $from, int $size, ?int $defaultOrderIndex = null)
+    /**
+     * @param string[] $defaultOrder
+     */
+    public function __construct(?string $ajaxUrl, int $from, int $size, array $defaultOrder = [0 => 'asc'])
     {
         $this->ajaxUrl = $ajaxUrl;
         $this->from = $from;
         $this->size = $size;
-        $this->defaultOrderIndex = $defaultOrderIndex;
+        $this->defaultOrder = $defaultOrder;
     }
 
     public function isSortable(): bool
@@ -238,17 +242,16 @@ abstract class TableAbstract implements TableInterface
         }
 
         if (null !== $this->ajaxUrl) {
+            $order = [];
+            foreach ($this->defaultOrder as $index => $direction) {
+                $order[] = [$index, $direction];
+            }
             $options = \array_merge($options, [
                 'processing' => true,
                 'serverSide' => true,
+                'order' => $order,
                 'ajax' => $this->ajaxUrl,
             ]);
-
-            if (null !== $this->defaultOrderIndex) {
-                $options = \array_merge($options, [
-                    'order' => [[$this->defaultOrderIndex, 'asc']],
-                ]);
-            }
         }
 
         $columnOptions = [];
