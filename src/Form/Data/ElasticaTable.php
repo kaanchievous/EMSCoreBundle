@@ -15,6 +15,7 @@ class ElasticaTable extends TableAbstract
     private const QUERY = 'query';
     private const EMPTY_QUERY = 'empty_query';
     private const FRONTEND_OPTIONS = 'frontendOptions';
+    const DEFAULT_ORDER = 'default_order';
     private ElasticaService $elasticaService;
     /** @var string[] */
     private array $aliases;
@@ -127,7 +128,7 @@ class ElasticaTable extends TableAbstract
     /**
      * @param array<string, mixed> $options
      *
-     * @return array{columns: array, query: string, empty_query: string, frontendOptions: array}
+     * @return array{columns: array, query: string, empty_query: string, frontendOptions: array, default_order: int}
      */
     private static function resolveOptions(array $options)
     {
@@ -142,10 +143,12 @@ class ElasticaTable extends TableAbstract
                     ],
                 ],
                 self::FRONTEND_OPTIONS => [],
+                self::DEFAULT_ORDER => 0,
             ])
             ->setAllowedTypes(self::COLUMNS, ['array'])
             ->setAllowedTypes(self::QUERY, ['array', 'string'])
             ->setAllowedTypes(self::QUERY, ['array', 'string'])
+            ->setAllowedTypes(self::DEFAULT_ORDER, ['int'])
             ->setNormalizer(self::QUERY, function (Options $options, $value) {
                 if (\is_array($value)) {
                     $value = \json_encode($value);
@@ -167,7 +170,7 @@ class ElasticaTable extends TableAbstract
                 return $value;
             })
         ;
-        /** @var array{columns: array, query: string, empty_query: string, frontendOptions: array} $resolvedParameter */
+        /** @var array{columns: array, query: string, empty_query: string, frontendOptions: array, default_order: int} $resolvedParameter */
         $resolvedParameter = $resolver->resolve($options);
 
         return $resolvedParameter;
